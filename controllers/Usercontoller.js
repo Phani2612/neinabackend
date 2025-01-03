@@ -4,64 +4,48 @@ const User_Model = require('../models/User')
 
 const jwt = require("jsonwebtoken");
 
-const SignUp = async(req,res)=>{
+const SignUp = async (req, res) => {
+  const { User_Name, User_Email, User_Phone, User_Password, User_Confirm_password } = req.body;
 
+  try {
+      // Check if the user already exists in the database
+      const isExistedUser = await User_Model.findOne({ UT_Email: User_Email });
 
-    const {User_Name , User_Email , User_Phone , User_Password, User_Confirm_password} = req.body
+      if (!isExistedUser) {
+          // User does not exist, create a new user and store in the database
 
-    try{
+          // Hash the password
+          const HashedPassword = await BCRYPT.hash(User_Password, 12);
 
-        const isExistedUser = await User_Model.findOne({UT_Email : User_Email})
+          // Create user details
+          const User_details = new User_Model({
+              UT_Email: User_Email,
+              UT_Name: User_Name,
+              UT_Phone: User_Phone,
+              UT_Password: HashedPassword,
+          });
 
-    if(!isExistedUser){
+          // Save the user to the database
+          await User_details.save();
 
-        // User not exists , so we create the user and store it in database
-
-        const HashedPassword = await BCRYPT.hash(User_Password , 12)
-
-      
-
-
-             const User_details = new User_Model({
-
-                UT_Email : User_Email,
-
-                UT_Name : User_Name,
-
-                UT_Phone : User_Phone,
-
-                UT_Password : HashedPassword
-
-
-             })
-
-
-             await User_details.save()
-
-             return res.status(201).status({message : "Registered successfully" , redirect_url : '/'})
-        
-    }
-
-
-    else{
-
-        // User existed , so we will redirect him to login page
-
-        return res.status(409).json({message : 'User already exists , please login to continue' , redirect_url : '/'})
-    }
-
-    }
-
-    catch(error)
-    {
-         console.error(error)
-
-         return res.status(500).json({message : 'Internal Server error'})
-    }
-
-    
-
-}
+          // Respond with a success message and redirect URL
+          return res.status(201).json({ 
+              message: "Registered successfully", 
+              redirect_url: '/' 
+          });
+      } else {
+          // User already exists, redirect to the login page
+          return res.status(409).json({ 
+              message: "User already exists, please login to continue", 
+              redirect_url: '/' 
+          });
+      }
+  } catch (error) {
+      // Handle any internal server error
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server error" });
+  }
+};
 
 
 const Login = async (req, res) => {
