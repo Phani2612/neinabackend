@@ -5,16 +5,18 @@ const User_Model = require('../models/User')
 const jwt = require("jsonwebtoken");
 
 const SignUp = async (req, res) => {
-  const { User_Name, User_Email, User_Phone, User_Password, User_Confirm_password } = req.body;
+  const { User_Name, User_Email, User_Phone, User_Password, User_Confirm_Password } = req.body;
+
+  console.log(req.body)
 
   try {
     // Validate input fields
-    if (!User_Name || !User_Email || !User_Phone || !User_Password || !User_Confirm_password) {
+    if (!User_Name || !User_Email || !User_Phone || !User_Password || !User_Confirm_Password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     // Check if passwords match
-    if (User_Password !== User_Confirm_password) {
+    if (User_Password !== User_Confirm_Password) {
       return res.status(400).json({ message: "Passwords do not match" });
     }
 
@@ -56,6 +58,7 @@ const SignUp = async (req, res) => {
     return res.status(500).json({ message: "Internal Server error" });
   }
 };
+
 
 
 
