@@ -8,44 +8,55 @@ const SignUp = async (req, res) => {
   const { User_Name, User_Email, User_Phone, User_Password, User_Confirm_password } = req.body;
 
   try {
-      // Check if the user already exists in the database
-      const isExistedUser = await User_Model.findOne({ UT_Email: User_Email });
+    // Validate input fields
+    if (!User_Name || !User_Email || !User_Phone || !User_Password || !User_Confirm_password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
 
-      if (!isExistedUser) {
-          // User does not exist, create a new user and store in the database
+    // Check if passwords match
+    if (User_Password !== User_Confirm_password) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
 
-          // Hash the password
-          const HashedPassword = await BCRYPT.hash(User_Password, 12);
+    // Check if the user already exists in the database
+    const isExistedUser = await User_Model.findOne({ UT_Email: User_Email });
 
-          // Create user details
-          const User_details = new User_Model({
-              UT_Email: User_Email,
-              UT_Name: User_Name,
-              UT_Phone: User_Phone,
-              UT_Password: HashedPassword,
-          });
+    if (!isExistedUser) {
+      // User does not exist, create a new user and store in the database
 
-          // Save the user to the database
-          await User_details.save();
+      // Hash the password
+      const HashedPassword = await BCRYPT.hash(User_Password, 12);
 
-          // Respond with a success message and redirect URL
-          return res.status(201).json({ 
-              message: "Registered successfully", 
-              redirect_url: '/' 
-          });
-      } else {
-          // User already exists, redirect to the login page
-          return res.status(409).json({ 
-              message: "User already exists, please login to continue", 
-              redirect_url: '/' 
-          });
-      }
+      // Create user details
+      const User_details = new User_Model({
+        UT_Email: User_Email,
+        UT_Name: User_Name,
+        UT_Phone: User_Phone,
+        UT_Password: HashedPassword,
+      });
+
+      // Save the user to the database
+      await User_details.save();
+
+      // Respond with a success message and redirect URL
+      return res.status(201).json({ 
+        message: "Registered successfully", 
+        redirect_url: '/' 
+      });
+    } else {
+      // User already exists, redirect to the login page
+      return res.status(409).json({ 
+        message: "User already exists, please login to continue", 
+        redirect_url: '/' 
+      });
+    }
   } catch (error) {
-      // Handle any internal server error
-      console.error(error);
-      return res.status(500).json({ message: "Internal Server error" });
+    // Handle any internal server error
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server error" });
   }
 };
+
 
 
 const Login = async (req, res) => {
